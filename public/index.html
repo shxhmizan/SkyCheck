@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkyCheck - Luggage Management</title>
+    <style>
+        /* --- CSS STYLES --- */
+        :root {
+            --primary-blue: #1d4ed8;
+            --primary-blue-hover: #1e40af;
+            --bg-color: #eff6ff;
+            --text-dark: #1e293b;
+            --text-gray: #64748b;
+            --error-red: #fef2f2;
+            --error-border: #fca5a5;
+            --error-text: #b91c1c;
+            --success-green-bg: #f0fdf4;
+            --success-green-border: #86efac;
+            --success-green-text: #15803d;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--text-dark);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            padding: 30px;
+            margin-bottom: 20px;
+            animation: fadeIn 0.4s ease-out;
+            position: relative;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header-icon {
+            background-color: var(--primary-blue);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px auto;
+        }
+        
+        .header-icon svg {
+            fill: white;
+            width: 30px;
+            height: 30px;
+        }
+
+        h1, h2, h3 { text-align: center; margin: 0 0 10px 0; }
+        h1 { font-size: 1.2rem; font-weight: 600; }
+        .subtitle { text-align: center; color: var(--text-gray); font-size: 0.9rem; margin-bottom: 30px; }
+
+        label { display: block; font-size: 0.9rem; margin-bottom: 6px; color: var(--text-dark); font-weight: 500; }
+        
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+    outline: none; /* Removes the default ugly browser line */
+    border-color: var(--primary-blue);
+    /* This creates the ring effect using shadow */
+    box-shadow: 0 0 0 2px var(--primary-blue); 
+}
+
+
+        .btn {
+            width: 100%;
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover { background-color: var(--primary-blue-hover); }
+        
+        .btn-outline { background: white; color: var(--text-dark); border: 1px solid #cbd5e1; margin-top: 10px; }
+        .btn-outline:hover { background: #f8fafc; }
+
+        .btn-secondary { background: #e2e8f0; color: var(--text-dark); margin-top: 10px; }
+        .btn-secondary:hover { background: #cbd5e1; }
+
+        /* Warning Box */
+        .warning-box {
+            background-color: var(--error-red);
+            border: 1px solid var(--error-border);
+            color: var(--error-text);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            line-height: 1.4;
+            align-items: flex-start;
+        }
+
+        /* Selection Grid */
+        .option-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .option-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option-card:hover { border-color: var(--primary-blue); background: #eff6ff; }
+        .option-card svg { width: 40px; height: 40px; margin-bottom: 10px; fill: var(--primary-blue); }
+
+        /* Flight Info Top Card */
+        .flight-info-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+        
+        .flight-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            font-size: 0.9rem;
+        }
+        .flight-grid div small { display: block; color: var(--text-gray); font-size: 0.75rem; margin-bottom: 2px; }
+
+        /* Success State */
+        .success-box {
+            border: 1px solid var(--success-green-border);
+            background: var(--success-green-bg);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .success-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--success-green-text);
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .measurement-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-blue);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Camera/Image Viewport */
+        .camera-viewport {
+            width: 100%;
+            height: 240px;
+            background-color: #000;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .camera-viewport video, .camera-viewport img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .camera-overlay {
+            position: absolute;
+            z-index: 10;
+            width: 70%;
+            height: 70%;
+            border: 2px dashed rgba(255,255,255,0.8);
+            border-radius: 12px;
+            pointer-events: none;
+        }
+
+        .tips-box {
+            background-color: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .tips-box h4 { font-size: 0.85rem; margin: 0 0 8px 0; }
+        .tips-box ul { margin: 0; padding-left: 20px; font-size: 0.8rem; color: var(--text-gray); }
+        .tips-box li { margin-bottom: 4px; }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div id="step-home" class="card">
+        <div class="header-icon">
+            <svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
+        </div>
+        <h1>SkyCheck</h1>
+        <p class="subtitle">Luggage Management System</p>
+
+        <label>Booking Number</label>
+        <input type="text" id="booking-input" placeholder="e.g., ABC123XYZ">
+
+        <label>Flight Number</label>
+        <input type="text" id="flight-input" placeholder="e.g., AA1234">
+
+        <button class="btn" onclick="handleLogin()">Continue to Luggage Scan &rarr;</button>
+
+        <div style="margin-top: 20px; background: #eff6ff; padding: 10px; border-radius: 8px; font-size: 0.8rem; color: var(--text-dark);">
+            Please have your booking number and flight number ready from your booking confirmation.
+        </div>
+    </div>
+
+    <div id="flight-header" class="hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <button onclick="goToStep('home')" style="background:none; border:none; color:var(--text-gray); cursor:pointer; font-size:0.9rem;">&larr; Back</button>
+            <span style="background:#e0f2fe; color:var(--primary-blue); padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold;">Step 2 of 2</span>
+        </div>
+
+        <div class="card flight-info-card">
+            <h3 style="text-align:left; margin-bottom:15px; font-size:1rem;">Hi John Smith,</h3>
+            <div class="flight-grid">
+                <div><small>Email</small>john.smith@email.com</div>
+                <div><small>Flight Number</small><span id="display-flight"></span></div>
+                <div><small>Destination</small>New York (JFK)</div>
+                <div><small>Seat</small>12A</div>
+                <div><small>Departure Time</small>14:30, Dec 15, 2025</div>
+                <div><small>Booking Number</small><span id="display-booking"></span></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="step-scanner-menu" class="card hidden">
+        <h2 style="text-align:left; font-size:1rem; margin-bottom:15px;">Scan Your Luggage</h2>
+        
+        <div class="warning-box">
+            <svg style="width:20px; min-width:20px; height:20px; fill:var(--error-text);" viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm1 17h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+            <div>Important Warning: If luggage size significantly differs at airport check-in, penalties apply. Please ensure accuracy.</div>
+        </div>
+
+        <div style="text-align:center; margin-bottom:15px; font-size:0.9rem;">Choose how to provide measurements:</div>
+
+        <div class="option-grid">
+            <div class="option-card" onclick="startCameraFlow()">
+                <svg viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm9-8H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H3V8h18v10z"/></svg>
+                <div>Upload / Scan Photo</div>
+                <div style="font-size:0.7rem; color:var(--text-gray); margin-top:5px;">Let AI analyze from photo</div>
+            </div>
+            <div class="option-card" onclick="goToStep('manual-input')">
+                <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                <div>Manual Input</div>
+                <div style="font-size:0.7rem; color:var(--text-gray); margin-top:5px;">Enter L x W x H manually</div>
+            </div>
+        </div>
+        
+        <div class="tips-box">
+            <h4>Tips for best results:</h4>
+            <ul>
+                <li>Place luggage on a flat surface</li>
+                <li>Ensure good lighting</li>
+                <li>Place a common item (A4 paper) beside luggage for AI scale</li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="step-manual-input" class="card hidden">
+        <h2 style="text-align:left; font-size:1rem; margin-bottom:15px;">Manual Input</h2>
+        <div class="warning-box">
+            <div>Ensure accurate estimation measurements. No scam from users will be tolerated.</div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
+            <div><label>Length (in)</label><input type="number" id="m-l" placeholder="e.g. 22"></div>
+            <div><label>Width (in)</label><input type="number" id="m-w" placeholder="e.g. 14"></div>
+            <div><label>Height (in)</label><input type="number" id="m-h" placeholder="e.g. 9"></div>
+        </div>
+        <label>Weight (kg)</label>
+        <input type="number" id="m-kg" placeholder="e.g. 15">
+
+        <button class="btn" onclick="calculateManual()">Calculate Size Category</button>
+        <button class="btn btn-outline" onclick="goToStep('scanner-menu')">Cancel</button>
+    </div>
+
+    <div id="step-camera-input" class="card hidden">
+        <h2 style="text-align:left; font-size:1rem; margin-bottom:15px;">Scan Your Luggage</h2>
+        
+        <div class="camera-viewport">
+            <div class="camera-overlay"></div>
+            <video id="camera-stream" autoplay playsinline class="hidden"></video>
+            <img id="image-preview" class="hidden">
+            <span id="camera-placeholder" style="z-index:1; color:#aaa;">[Camera/Image Preview]</span>
+        </div>
+        
+        <p style="text-align:center; font-size:0.85rem; color:var(--text-gray); margin-bottom:15px;">
+            Position your luggage clearly in frame for accurate measurement
+        </p>
+
+        <div style="display:flex; gap:10px;">
+            <button class="btn" onclick="capturePhoto()" id="btn-capture">
+                <svg style="width:20px; height:20px; fill:white;" viewBox="0 0 24 24"><path d="M12 15.2c-1.76 0-3.2-1.44-3.2-3.2s1.44-3.2 3.2-3.2 3.2 1.44 3.2 3.2-1.44 3.2-3.2 3.2zm0-8c-2.65 0-4.8 2.15-4.8 4.8s2.15 4.8 4.8 4.8 4.8-2.15 4.8-4.8-2.15-4.8-4.8-4.8z"/></svg>
+                Take Photo
+            </button>
+            
+            <input type="file" id="real-file-input" hidden accept="image/*" onchange="handleFileUpload(this)">
+            
+            <button class="btn btn-secondary" style="margin-top:0;" onclick="document.getElementById('real-file-input').click()">
+                <svg style="width:20px; height:20px; fill:var(--text-dark); margin-right:5px;" viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
+                Upload
+            </button>
+        </div>
+        
+        <div id="analyze-section" class="hidden" style="margin-top:15px;">
+             <button class="btn" style="background-color: var(--primary-blue);" onclick="processAIAnalysis()">Analyze Luggage</button>
+             <button class="btn btn-outline" onclick="resetCameraUI()">Retake</button>
+        </div>
+
+        <div style="text-align:center; margin-top:15px;">
+            <a href="#" onclick="goToStep('scanner-menu')" style="color:var(--primary-blue); font-size:0.9rem; text-decoration:none;">&larr; Choose different method</a>
+        </div>
+    </div>
+
+    <div id="step-result" class="card hidden">
+        <h2 style="text-align:left; font-size:1rem; margin-bottom:15px;">Analysis Result</h2>
+
+        <div id="loading-ui">
+            <div class="spinner"></div>
+            <p style="text-align:center; color:var(--text-gray);">Analyzing luggage dimensions...</p>
+            <p style="text-align:center; font-size:0.8rem; color:#94a3b8;">This may take a few seconds</p>
+        </div>
+
+        <div id="result-ui" class="hidden">
+            <div class="success-box">
+                <div class="success-header">
+                    <svg style="width:24px; height:24px; fill:var(--success-green-text);" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                    Analysis Complete
+                </div>
+                
+                <div class="measurement-row">
+                    <span>Size Category:</span>
+                    <strong id="res-cat">Checked Medium</strong>
+                </div>
+                <div class="measurement-row">
+                    <span>Dimensions:</span>
+                    <strong id="res-dims">22" x 14" x 9"</strong>
+                </div>
+                <div class="measurement-row">
+                    <span>Est. Weight:</span>
+                    <strong id="res-weight">12 kg</strong>
+                </div>
+                
+                <div style="margin-top:15px; padding-top:10px; border-top:1px solid #bbf7d0;">
+                    <a href="#" onclick="editMeasurements()" style="color:var(--primary-blue); font-size:0.9rem; text-decoration:none; display:flex; align-items:center; gap:5px;">
+                        <svg style="width:14px; height:14px; fill:currentColor;" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                        Edit Measurements
+                    </a>
+                </div>
+                <div style="margin-top:10px; font-size:0.85rem; font-weight:600; color:var(--text-dark);">
+                    Standard checked luggage. No additional fees.
+                </div>
+            </div>
+
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-outline" onclick="goToStep('scanner-menu')" style="margin-top:0;">Scan Another</button>
+                <button class="btn" onclick="goToStep('thank-you')">Confirm & Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="step-thank-you" class="card hidden" style="text-align:center;">
+        <div style="background:#f0fdf4; width:80px; height:80px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px auto;">
+            <svg style="width:40px; height:40px; fill:var(--success-green-text);" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+        </div>
+        
+        <h2>Thank You, John Smith!</h2>
+        <p style="color:var(--text-gray); margin-bottom:20px;">Your luggage has been successfully registered.</p>
+
+        <div style="border:1px solid #cbd5e1; border-radius:8px; padding:20px; margin-bottom:20px; text-align:left;">
+            <h3 style="font-size:1rem; margin-bottom:10px;">Get Your Voucher</h3>
+            <p style="font-size:0.85rem; color:var(--text-gray); margin-bottom:15px;">Please follow the link below or check your email for your luggage voucher.</p>
+            
+            <div style="background:#f1f5f9; padding:10px; border-radius:6px; font-size:0.9rem; margin-bottom:15px; border:1px solid #cbd5e1;">
+                📧 Email sent to: <strong>john.smith@email.com</strong>
+            </div>
+            
+            <button class="btn">View Voucher &#8599;</button>
+        </div>
+
+        <div style="background:#fefce8; border:1px solid #fde047; color:#854d0e; padding:15px; border-radius:8px; font-size:0.85rem; text-align:left; margin-bottom:20px;">
+            <strong>Important Reminder:</strong> Please arrive at the airport at least 2 hours before departure.
+        </div>
+
+        <button class="btn" onclick="goToStep('home')">Register Another Luggage</button>
+        <div style="display:flex; gap:10px; margin-top:10px;">
+            <button class="btn btn-secondary">New Booking</button>
+            <button class="btn btn-secondary">Print Confirmation</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // --- CONFIGURATION ---
+    // API Key provided by user
+    const GEMINI_API_KEY = "AIzaSyAX5moZFNhkfTYS3AbnhE1PbimRYKaJ4tA"; 
+
+    // --- APP STATE ---
+    let currentAIResult = { l: 0, w: 0, h: 0, kg: 0 };
+    let streamRef = null;
+    let currentImageBase64 = null; 
+
+    // --- NAVIGATION ---
+    function goToStep(stepId) {
+        document.querySelectorAll('.container > .card').forEach(el => el.classList.add('hidden'));
+        document.getElementById('flight-header').classList.add('hidden');
+
+        if(stepId !== 'camera-input') stopCamera();
+
+        document.getElementById('step-' + stepId).classList.remove('hidden');
+
+        if (['scanner-menu', 'manual-input', 'camera-input', 'result'].includes(stepId)) {
+            document.getElementById('flight-header').classList.remove('hidden');
+            const flInput = document.getElementById('flight-input');
+            if(flInput && flInput.value) document.getElementById('display-flight').innerText = flInput.value;
+            const bkInput = document.getElementById('booking-input');
+            if(bkInput && bkInput.value) document.getElementById('display-booking').innerText = bkInput.value;
+        }
+
+        if(stepId === 'result' && document.getElementById('result-ui').classList.contains('hidden')) {
+            document.getElementById('loading-ui').classList.remove('hidden');
+        }
+    }
+
+    // --- NEW LOGIN FUNCTION ---
+
+async function handleLogin() {
+    // 1. Grab the text the user typed into the boxes
+    const bookingRef = document.getElementById('booking-input').value;
+    const flightNum = document.getElementById('flight-input').value;
+
+    // 2. Stop if the boxes are empty
+    if (!bookingRef || !flightNum) {
+        alert("Please enter your Booking and Flight Number.");
+        return;
+    }
+
+    // 3. Show a temporary "Loading..." text on the button so the user knows it's working
+    const btn = document.querySelector('#step-home .btn');
+    const originalText = btn.innerText;
+    btn.innerText = "Checking...";
+
+    try {
+        // 4. THE PHONE CALL: Send the data to your server
+        const response = await fetch('/api/login', {
+            method: 'POST', // We are posting data
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ bookingRef, flightNum }) // The data we are sending
+        });
+        
+        // 5. Wait for the server to answer and turn it into a JavaScript object
+        const result = await response.json();
+
+        // 6. Check the answer
+        if (result.success) {
+            // SUCCESS! The server found the user.
+            const data = result.data; // This is the user info from the database
+
+            // Update the "Flight Info" card with the real name
+            document.querySelector('.flight-info-card h3').innerText = `Hi ${data.first_name} ${data.last_name},`;
+            
+            // Update the small details in the header
+            document.getElementById('display-flight').innerText = data.flight_number;
+            document.getElementById('display-booking').innerText = data.booking_ref;
+            
+            // Go to the next screen
+            goToStep('scanner-menu');
+
+        } else {
+            // FAILURE: The server said "User not found"
+            alert("We couldn't find that booking. Please check your details.");
+        }
+
+    } catch (error) {
+        // ERROR: The internet is down or the server is broken
+        console.error('Error:', error);
+        alert('System error. Is your server running?');
+    } finally {
+        // Reset the button text back to normal
+        btn.innerText = originalText;
+    }
+}
+
+    // --- MANUAL INPUT LOGIC ---
+    function calculateManual() {
+        const l = document.getElementById('m-l').value || 0;
+        const w = document.getElementById('m-w').value || 0;
+        const h = document.getElementById('m-h').value || 0;
+        const kg = document.getElementById('m-kg').value || 0;
+        populateResult(l, w, h, kg);
+        goToStep('result');
+        setTimeout(() => {
+            document.getElementById('loading-ui').classList.add('hidden');
+            document.getElementById('result-ui').classList.remove('hidden');
+        }, 1000);
+    }
+
+    // --- CAMERA & UPLOAD LOGIC ---
+    function startCameraFlow() {
+        goToStep('camera-input');
+        resetCameraUI();
+        if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+            .then(function(stream) {
+                streamRef = stream;
+                const video = document.getElementById('camera-stream');
+                video.srcObject = stream;
+                video.classList.remove('hidden');
+                document.getElementById('camera-placeholder').classList.add('hidden');
+            })
+            .catch(function(err) {
+                console.log("Camera error: ", err);
+                document.getElementById('camera-placeholder').innerText = "[Camera not available. Please Upload]";
+            });
+        }
+    }
+
+    function stopCamera() {
+        if (streamRef) {
+            streamRef.getTracks().forEach(track => track.stop());
+            streamRef = null;
+        }
+    }
+
+    function handleFileUpload(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64String = e.target.result;
+                currentImageBase64 = base64String; 
+
+                const img = document.getElementById('image-preview');
+                img.src = base64String;
+                img.classList.remove('hidden');
+                
+                document.getElementById('camera-stream').classList.add('hidden');
+                document.getElementById('camera-placeholder').classList.add('hidden');
+                stopCamera();
+
+                document.getElementById('analyze-section').classList.remove('hidden');
+                document.getElementById('btn-capture').classList.add('hidden');
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function capturePhoto() {
+        const video = document.getElementById('camera-stream');
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Convert to Base64
+        const dataURL = canvas.toDataURL('image/jpeg');
+        currentImageBase64 = dataURL; 
+
+        // Show preview
+        const img = document.getElementById('image-preview');
+        img.src = dataURL;
+        img.classList.remove('hidden');
+        video.classList.add('hidden');
+
+        document.getElementById('analyze-section').classList.remove('hidden');
+        document.getElementById('btn-capture').classList.add('hidden');
+    }
+
+    function resetCameraUI() {
+        currentImageBase64 = null;
+        document.getElementById('image-preview').classList.add('hidden');
+        document.getElementById('image-preview').src = "";
+        document.getElementById('analyze-section').classList.add('hidden');
+        document.getElementById('btn-capture').classList.remove('hidden');
+        const video = document.getElementById('camera-stream');
+        if(video.srcObject) {
+            video.classList.remove('hidden');
+            video.play();
+        }
+    }
+
+    // --- GEMINI AI INTEGRATION ---
+    async function processAIAnalysis() {
+        if (!currentImageBase64) {
+            alert("No image captured!");
+            return;
+        }
+
+        goToStep('result');
+
+        // 1. Prepare Data
+        // Remove the header string (data:image/jpeg...) to get just the base64 characters
+        const base64Data = currentImageBase64.split(',')[1];
+        
+        const prompt = `
+            Analyze this image of luggage. 
+            Estimate the Length, Width, and Height in inches, and the Weight in kg.
+            Return ONLY a raw JSON object with keys: l, w, h, kg. 
+            Example: {"l": 22, "w": 14, "h": 9, "kg": 10}
+            Do not include Markdown formatting or code blocks.
+        `;
+
+        const requestBody = {
+            contents: [{
+                parts: [
+                    { text: prompt },
+                    { inline_data: { mime_type: "image/jpeg", data: base64Data } }
+                ]
+            }]
+        };
+
+        try {
+            // 2. Call API (Using the STANDARD alias)
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(requestBody)
+            });
+
+            // CHECK FOR HTTP ERRORS
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error("API Error Details:", errorData);
+                
+                // Specific error handling for the user
+                if(response.status === 404) {
+                     throw new Error("Model not found. Please ensure 'Generative Language API' is ENABLED in your Google Cloud Console.");
+                }
+                
+                throw new Error(`Google API Error: ${errorData.error.message}`);
+            }
+
+            const data = await response.json();
+            
+            // 3. Parse Response
+            // Check if candidates exist (sometimes safety filters block the response)
+            if (!data.candidates || data.candidates.length === 0) {
+                 throw new Error("AI blocked the image (Safety Filter Triggered). Try a different photo.");
+            }
+
+            const aiText = data.candidates[0].content.parts[0].text;
+            
+            // Clean up text (sometimes AI adds ```json ... ```)
+            const cleanJson = aiText.replace(/```json|```/g, '').trim();
+            const resultObj = JSON.parse(cleanJson);
+
+            // 4. Update UI
+            currentAIResult = resultObj; // Save for edit mode
+            populateResult(resultObj.l, resultObj.w, resultObj.h, resultObj.kg);
+            
+            document.getElementById('loading-ui').classList.add('hidden');
+            document.getElementById('result-ui').classList.remove('hidden');
+
+        } catch (error) {
+            console.error("Full Error Object:", error);
+            // This alert will now tell you the ACTUAL problem
+            alert(`Analysis Failed:\n${error.message}`);
+            goToStep('scanner-menu');
+        }
+    }
+
+    // --- RESULT & EDIT LOGIC ---
+    function populateResult(l, w, h, kg) {
+        currentAIResult = { l, w, h, kg };
+        document.getElementById('res-dims').innerText = `${l}" x ${w}" x ${h}"`;
+        document.getElementById('res-weight').innerText = `${kg} kg`;
+        
+        if(l <= 22 && w <= 14 && h <= 9) {
+            document.getElementById('res-cat').innerText = "Cabin / Carry-On";
+        } else {
+            document.getElementById('res-cat').innerText = "Checked Medium";
+        }
+    }
+
+    function editMeasurements() {
+        document.getElementById('m-l').value = currentAIResult.l;
+        document.getElementById('m-w').value = currentAIResult.w;
+        document.getElementById('m-h').value = currentAIResult.h;
+        document.getElementById('m-kg').value = currentAIResult.kg;
+        goToStep('manual-input');
+    }
+</script>
+
+</body>
+</html>
